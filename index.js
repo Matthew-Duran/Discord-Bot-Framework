@@ -10,8 +10,8 @@ const client = new Discord.Client();
 DIL(client, {
   method: "embed", // can be "embed" "link" or "image"
   logChannel: "746192045089226828",
-  channels: ["746155669198995547"]
+  channels: []
 })
 
 // Login the Client
-client.login("NzQ2MTg4ODgxMzE3MTk5OTEy.Xz8sjA.XeZVYug05SVwUB9SVWlGVmbEHy4");
+client.login("NzM3Njc1MDgyNzcxNTk1Mzc1.XyAzdQ.5wcopcoM-wS9hUvrNUNqY1WuOIo");
