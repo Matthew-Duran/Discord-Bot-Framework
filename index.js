@@ -1,17 +1,39 @@
-// First we require the Discord.js library.
-const Discord = require("discord.js");
+/* eslint-disable no-console */
+const path = require('path');
+const fs = require('fs');
+const packageJson = require('./package.json');
 
-// Now we require the module.
-const DIL = require("discord.js-image-logger");
+try {
+  fs.accessSync(path.join(__dirname, './', 'node_modules'));
+} catch (e) {
+  console.log('Please run "npm install" before starting the bot');
+  process.exit(1);
+}
 
-// Start a new Discord Client.
-const client = new Discord.Client();
-// Start the module with some custom options.
-DIL(client, {
-  method: "embed", // can be "embed" "link" or "image"
-  logChannel: "746192045089226828",
-  channels: []
-})
+// Error handling
+process.on('uncaughtException', (err) => {
+  if (err && err.message && err.message.startsWith('Unhandled MESSAGE_CREATE type')) {
+    return;
+  }
 
-// Login the Client
-client.login("NzQ2MTg4ODgxMzE3MTk5OTEy.Xz8sjA.XeZVYug05SVwUB9SVWlGVmbEHy4");
+  // For everything else, crash with the error
+  console.log('error', err);
+  process.exit(1);
+});
+
+let testedPackage = '';
+try {
+  const modules = Object.keys(packageJson.dependencies);
+  modules.forEach((mod) => {
+    testedPackage = mod;
+    fs.accessSync(path.join(__dirname, './', 'node_modules', mod));
+  });
+} catch (e) {
+  console.log(`Please run "npm install" again! Package "${testedPackage}" is missing.`);
+  process.exit(1);
+}
+
+process.on('uncaughtException', (error) => console.log(error));
+const bot = require('./bot');
+
+bot.start();

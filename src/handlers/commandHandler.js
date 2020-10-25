@@ -1,0 +1,48 @@
+/* eslint-disable import/no-dynamic-require */
+/* eslint-disable global-require */
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable max-len */
+const { readdirSync } = require('fs');
+const { resolve, join, sep } = require('path');
+const BaseCommand = require('../base/baseCommand.js');
+const { getDirectories } = require('../utilities/utilities.js');
+
+class CommandHandler {
+  async initialize(client) {
+    this.client = client;
+    if (!this.client.commandHandler) this.client.commandHandler = this;
+    this.registerTypes();
+    this.addCommandsIn('../../commands');
+    return [...this.client.registry.commands.values()];
+  }
+
+  registerTypes() {
+    this.client.registry.registerDefaultTypes();
+    this.client.registry.registerTypesIn(resolve(__dirname, '../types/'));
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  checkIfValid(command) {
+    return ['function', 'object'].includes(typeof command) && command.prototype && command.prototype instanceof BaseCommand;
+  }
+
+  addCommand(pathToCommand) {
+    if (pathToCommand.endsWith('.js') && !pathToCommand.endsWith('index.js')) { // index.js is usually used as an index of all other js files in that dir
+      const command = require(pathToCommand);
+      if (this.checkIfValid(command)) {
+        const groupID = resolve(pathToCommand).substring(0, pathToCommand.indexOf('.')).split(sep).reverse()[1]; // we won't actually need the filename tbh
+        if (!this.client.registry.groups.has(groupID)) this.client.registry.registerGroup(groupID);
+        this.client.registry.registerCommand(command);
+      }
+    }
+  }
+
+  addCommandsIn(commandsFolder) {
+    const absoluteCommandsFolderPath = resolve(__dirname, commandsFolder);
+    for (const group of getDirectories(absoluteCommandsFolderPath)) {
+      for (const file of readdirSync(join(absoluteCommandsFolderPath, group))) this.addCommand(join(absoluteCommandsFolderPath, group, file));
+    }
+  }
+}
+
+module.exports = new CommandHandler();
